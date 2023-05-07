@@ -26,6 +26,13 @@ st.write(data.head())
 st.write(f"Number of rows: {data.shape[0]}")
 
 results = {"GBDT": {}, "GOSS": {}, "EFB": {}}
+trained = False
+
+@st.cache_data
+def cached_model():
+    return results
+
+@st.cache_data
 def component(algorithm: str):
     model = None
     if algorithm == "GBDT":
@@ -43,7 +50,7 @@ def component(algorithm: str):
     mse = mean_squared_error(y_test, y_pred)
 
     # 保存する結果を更新
-    results[algorithm] = {"mse": mse, "elapsed_time": elapsed_time}
+    results[algorithm] = {"mse": mse, "elapsed_time": elapsed_time, "model": model}
 
     if algorithm == "GOSS":
         data_reduction = 1 - (model.a + model.b)
@@ -69,12 +76,33 @@ def component(algorithm: str):
     st.pyplot(fig)
 
 
-if st.button("Train", key="train"):
-    col1, col2, col3 = st.columns(3)
+@st.cache_data
+def plot_grads():
+    st.title("GOSS gradients in all iters")
+    fig2 = results["GOSS"]["model"].plot_grads()
+    st.pyplot(fig2)
+
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    component("GBDT")
+with col2:
+    component("GOSS")
+with col3:
+    component("EFB")
+
+cached_model()
+
+tree_index = st.slider("Select a tree index", 0, 69, 0)
+
+results = cached_model()
+if "model" in results["GOSS"]:
+    col1, col2 = st.columns(2)
 
     with col1:
-        component("GBDT")
+        st.title(f"GOSS gradients with iter {tree_index}")
+        fig1 = results["GOSS"]["model"].plot_grad_with_iter(tree_index)
+        st.pyplot(fig1)
     with col2:
-        component("GOSS")
-    with col3:
-        component("EFB")
+        plot_grads()
