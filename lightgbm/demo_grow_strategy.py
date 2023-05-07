@@ -11,12 +11,12 @@ from sklearn.model_selection import train_test_split
 st.set_page_config(layout="wide")
 
 def train_xgboost(X, y):
-    model = xgb.XGBRegressor(n_estimators=100)
+    model = xgb.XGBRegressor(n_estimators=100, max_depth=6)
     model.fit(X, y)
     return model
 
 def train_lightgbm(X, y):
-    model = lgb.LGBMRegressor(n_estimators=100)
+    model = lgb.LGBMRegressor(n_estimators=100, max_depth=6)
     model.fit(X, y)
     return model
 
@@ -99,7 +99,7 @@ def app():
     # Streamlitウィジェットの追加
     st.title("Tree Visualization")
     st.sidebar.header("Settings")
-    tree_index = st.sidebar.slider("Select a tree index", 0, 99, 17)
+    tree_index = st.sidebar.slider("Select a tree index", 0, 99, 27)
     # max_depth = st.sidebar.slider("Select max depth", 1, 10, 10)
 
     st.markdown("""
