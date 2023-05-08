@@ -38,13 +38,13 @@ def component(algorithm: str):
     n_iter = 0
     if algorithm == "GBDT":
         n_iter = 300
-        model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.01, max_depth=6, random_state=42, max_bin=4)
+        model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.005, max_depth=5, random_state=42, max_bin=20)
     elif algorithm == "GBDT_GOSS":
-        n_iter = 500
-        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.01, a=0.1, b=0.1, max_depth=8, random_state=42, max_bin=5)
+        n_iter = 50
+        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.05, a=0.3, b=0.1, max_depth=8, random_state=42, max_bin=20)
     elif algorithm == "GBDT_EFB":
-        n_iter = 700
-        model = SimpleEFB(n_trees=n_iter, learning_rate=0.002, max_depth=9, random_state=42, max_bin=4)
+        n_iter = 200
+        model = SimpleEFB(n_trees=n_iter, learning_rate=0.01, max_depth=7, random_state=42, max_bin=20)
 
     start_time = time.time()
     model.fit(X_train, y_train)
@@ -71,7 +71,7 @@ def component(algorithm: str):
     # st.write(f"Training time: {results[algorithm]['elapsed_time']:.2f} seconds")
     st.write(f"Training time per iteration: {results[algorithm]['elapsed_time_per_iter']:.3e} seconds")
 
-    st.write(f"Training Dataset percentage: {results[algorithm]['data_reduction']}")
+    st.write(f"Training Dataset percent: {results[algorithm]['data_reduction']}")
 
     fig, ax = plt.subplots()
     ax.plot(results[algorithm]["costs"])
