@@ -115,12 +115,12 @@ def app():
 
     col1, col2 = st.columns(2)
     with col1:
-        st.header("XGBoost Depth-wise Tree")
+        st.header("XGBoost level-wise Tree")
         xgb_graph = xgb.to_graphviz(xgb_model.get_booster(), num_trees=tree_index)
         xgb_tree = tree_to_digraph(xgb_graph, model_type="xgboost")
         st.graphviz_chart(xgb_tree)
     with col2:
-        st.header("LightGBM Leaf-wise Tree")
+        st.header("LightGBM leaf-wise Tree")
         lgb_graph = lgb.create_tree_digraph(lgb_model.booster_, tree_index=tree_index, orientation='vertical')
         lgb_tree = tree_to_digraph(lgb_graph, model_type="lightgbm")
         st.graphviz_chart(lgb_tree)   
