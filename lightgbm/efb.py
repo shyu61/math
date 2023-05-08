@@ -12,7 +12,6 @@ class SimpleEFB:
         self.trees = []
         self.costs = []
         self.bundles = {}
-        self.feature_bundles = []
         self.random_state = random_state
 
     # MSE

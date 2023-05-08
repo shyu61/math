@@ -35,12 +35,16 @@ def cached_model():
 @st.cache_data
 def component(algorithm: str):
     model = None
+    n_iter = 0
     if algorithm == "GBDT":
-        model = SimpleGBDT(n_estimators=70, learning_rate=0.1, max_depth=7, random_state=42)
+        n_iter = 70
+        model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.1, max_depth=7, random_state=42)
     elif algorithm == "GOSS":
-        model = SimpleGOSS(n_trees=70, learning_rate=0.1, a=0.2, b=0.4, max_depth=7, random_state=42)
+        n_iter = 70
+        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.1, a=0.2, b=0.4, max_depth=7, random_state=42)
     elif algorithm == "EFB":
-        model = SimpleEFB(n_trees=700, learning_rate=0.002, max_depth=9, random_state=42, max_bin=4)
+        n_iter = 700
+        model = SimpleEFB(n_trees=n_iter, learning_rate=0.002, max_depth=9, random_state=42, max_bin=4)
 
     start_time = time.time()
     model.fit(X_train, y_train)
@@ -50,23 +54,24 @@ def component(algorithm: str):
     mse = mean_squared_error(y_test, y_pred)
 
     # 保存する結果を更新
-    results[algorithm] = {"mse": mse, "elapsed_time": elapsed_time, "model": model}
+    results[algorithm] = {"mse": mse, "elapsed_time": elapsed_time, "model": model, "elapsed_time_per_iter": elapsed_time / n_iter}
 
     if algorithm == "GOSS":
-        data_reduction = 1 - (model.a + model.b)
-        results[algorithm]["data_reduction"] = data_reduction
+        data_reduction = 1 - (model.a + (1 -  model.a) * model.b)
+        results[algorithm]["data_reduction"] = f"{data_reduction * 100:.2f}%"
     elif algorithm == "GBDT":
-        results[algorithm]["data_reduction"] = 1
+        results[algorithm]["data_reduction"] = f"{1 * 100:.2f}%"
     elif algorithm == "EFB":
-        results[algorithm]["data_reduction"] = 1
+        results[algorithm]["data_reduction"] = f"Original feats: {X.shape[1]}, bundled feats: {len(model.bundles.keys())}"
 
     results[algorithm]["costs"] = model.costs
 
     st.write(f"### {algorithm} Results")
     st.write(f"MSE: {results[algorithm]['mse']:.4f}")
-    st.write(f"Training time: {results[algorithm]['elapsed_time']:.2f} seconds")
+    # st.write(f"Training time: {results[algorithm]['elapsed_time']:.2f} seconds")
+    st.write(f"Training time per iteration: {results[algorithm]['elapsed_time_per_iter']:.3e} seconds")
 
-    st.write(f"Data reduction: {results[algorithm]['data_reduction'] * 100:.2f}%")
+    st.write(f"Data reduction: {results[algorithm]['data_reduction']}")
 
     fig, ax = plt.subplots()
     ax.plot(results[algorithm]["costs"])
