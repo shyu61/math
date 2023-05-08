@@ -19,13 +19,13 @@ X = data.drop("target", axis=1)
 y = data["target"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-st.title("GBDT vs GOSS vs EFB Demo")
+st.title("GBDT, GBDT_GOSS, GBDT_EFB Demo")
 
 st.write("### Dataset")
 st.write(data.head())
 st.write(f"Number of rows: {data.shape[0]}")
 
-results = {"GBDT": {}, "GOSS": {}, "EFB": {}}
+results = {"GBDT": {}, "GBDT_GOSS": {}, "GBDT_EFB": {}}
 trained = False
 
 @st.cache_data
@@ -39,10 +39,10 @@ def component(algorithm: str):
     if algorithm == "GBDT":
         n_iter = 70
         model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.1, max_depth=7, random_state=42)
-    elif algorithm == "GOSS":
+    elif algorithm == "GBDT_GOSS":
         n_iter = 70
         model = SimpleGOSS(n_trees=n_iter, learning_rate=0.1, a=0.2, b=0.4, max_depth=7, random_state=42)
-    elif algorithm == "EFB":
+    elif algorithm == "GBDT_EFB":
         n_iter = 700
         model = SimpleEFB(n_trees=n_iter, learning_rate=0.002, max_depth=9, random_state=42, max_bin=4)
 
@@ -56,12 +56,12 @@ def component(algorithm: str):
     # 保存する結果を更新
     results[algorithm] = {"mse": mse, "elapsed_time": elapsed_time, "model": model, "elapsed_time_per_iter": elapsed_time / n_iter}
 
-    if algorithm == "GOSS":
+    if algorithm == "GBDT_GOSS":
         data_reduction = 1 - (model.a + (1 -  model.a) * model.b)
         results[algorithm]["data_reduction"] = f"{data_reduction * 100:.2f}%"
     elif algorithm == "GBDT":
         results[algorithm]["data_reduction"] = f"{1 * 100:.2f}%"
-    elif algorithm == "EFB":
+    elif algorithm == "GBDT_EFB":
         results[algorithm]["data_reduction"] = f"Original feats: {X.shape[1]}, bundled feats: {len(model.bundles.keys())}"
 
     results[algorithm]["costs"] = model.costs
@@ -83,8 +83,8 @@ def component(algorithm: str):
 
 @st.cache_data
 def plot_grads():
-    st.title("GOSS gradients in all iters")
-    fig2 = results["GOSS"]["model"].plot_grads()
+    st.title("GBDT_GOSS grads in all iters")
+    fig2 = results["GBDT_GOSS"]["model"].plot_grads()
     st.pyplot(fig2)
 
 
@@ -93,9 +93,9 @@ col1, col2, col3 = st.columns(3)
 with col1:
     component("GBDT")
 with col2:
-    component("GOSS")
+    component("GBDT_GOSS")
 with col3:
-    component("EFB")
+    component("GBDT_EFB")
 
 cached_model()
 
@@ -103,12 +103,12 @@ cached_model()
 tree_index = st.selectbox("Select a tree index", options=list(range(70)), index=0)
 
 results = cached_model()
-if "model" in results["GOSS"]:
+if "model" in results["GBDT_GOSS"]:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.title(f"GOSS gradients with iter {tree_index}")
-        fig1 = results["GOSS"]["model"].plot_grad_with_iter(tree_index)
+        st.title(f"GBDT_GOSS grads with iter {tree_index}")
+        fig1 = results["GBDT_GOSS"]["model"].plot_grad_with_iter(tree_index)
         st.pyplot(fig1)
     with col2:
         plot_grads()
