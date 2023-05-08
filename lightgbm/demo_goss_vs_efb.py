@@ -37,11 +37,11 @@ def component(algorithm: str):
     model = None
     n_iter = 0
     if algorithm == "GBDT":
-        n_iter = 70
-        model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.1, max_depth=7, random_state=42)
+        n_iter = 300
+        model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.01, max_depth=6, random_state=42, max_bin=4)
     elif algorithm == "GBDT_GOSS":
-        n_iter = 70
-        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.1, a=0.2, b=0.4, max_depth=7, random_state=42)
+        n_iter = 500
+        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.01, a=0.1, b=0.1, max_depth=8, random_state=42, max_bin=5)
     elif algorithm == "GBDT_EFB":
         n_iter = 700
         model = SimpleEFB(n_trees=n_iter, learning_rate=0.002, max_depth=9, random_state=42, max_bin=4)

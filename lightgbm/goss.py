@@ -4,7 +4,7 @@ from sklearn.tree import DecisionTreeRegressor
 import matplotlib.pyplot as plt
 
 class SimpleGOSS:
-    def __init__(self, n_trees=100, learning_rate=0.01, a=0.2, b=0.1, max_depth=4, random_state=42):
+    def __init__(self, n_trees=100, learning_rate=0.01, a=0.2, b=0.1, max_depth=4, max_bin=255, random_state=42):
         self.n_trees = n_trees
         self.learning_rate = learning_rate
         self.a = a
@@ -15,6 +15,7 @@ class SimpleGOSS:
         self.selected_data_points = []
         self.all_grads_abs = []
         # self.a_borders = []
+        self.max_bin = max_bin
         self.random_state = random_state
 
     def plot_grad_with_iter(self, iteration):
@@ -53,7 +54,7 @@ class SimpleGOSS:
         plt.close()
 
         return fig
-        
+
     # MSE
     def _calc_cost(self, y, y_pred):
         return np.mean((y - y_pred) ** 2)
@@ -76,25 +77,33 @@ class SimpleGOSS:
         used_indices = np.concatenate([top_indices, rand_indices])
         return used_indices, top_indices
 
+    def _get_bins(self, X: pd.Series) -> int:
+        unique_cnt = X.nunique()
+        return min(unique_cnt, self.max_bin)
+
     def fit(self, X, y):
         self.used_cnt = pd.Series(np.zeros(len(X)), dtype=int)
 
+        X_bined = X.copy()
+        for feat in X.columns:
+            X_bined[feat] = pd.cut(X[feat], bins=self._get_bins(X[feat]), labels=False).astype(int)
+
         # pd.DataFrameだとうまく動かないので、numpyに変換
-        X = np.array(X)
+        X_bined = np.array(X_bined)
         y = np.array(y)
 
         np.random.seed(self.random_state)
 
         self.F0 = y.mean()
-        Fm = np.repeat(self.F0, X.shape[0])
+        Fm = np.repeat(self.F0, X_bined.shape[0])
 
-        top_n = int(self.a * len(X))
-        rand_n = int(self.b * len(X))
+        top_n = int(self.a * len(X_bined))
+        rand_n = int(self.b * len(X_bined))
 
         for _ in range(self.n_trees):
             grads = self._calc_gradients(y, Fm)
 
-            used_indices, top_indices = self._goss_sampling(X, top_n, rand_n, grads)
+            used_indices, top_indices = self._goss_sampling(X_bined, top_n, rand_n, grads)
 
             # 学習に使われた回数をカウント
             self.used_cnt[used_indices] += 1
@@ -112,19 +121,23 @@ class SimpleGOSS:
             weight = np.abs(grads[used_indices])
 
             tree = DecisionTreeRegressor(max_depth=self.max_depth, random_state=42)
-            tree.fit(X[used_indices], grads[used_indices], sample_weight=weight)
+            tree.fit(X_bined[used_indices], grads[used_indices], sample_weight=weight)
 
             self.costs.append(self._calc_cost(y[used_indices], Fm[used_indices]))
 
             # Fmを更新
-            Fm += self.learning_rate * tree.predict(X)
+            Fm += self.learning_rate * tree.predict(X_bined)
 
             self.trees.append(tree)
         return self
 
     def predict(self, X):
-        X = np.array(X)
+        X_bined = X.copy()
+        for feat in X.columns:
+            X_bined[feat] = pd.cut(X[feat], bins=self._get_bins(X[feat]), labels=False).astype(int)
 
-        Fm = np.repeat(self.F0, X.shape[0])
-        pred = Fm + self.learning_rate * np.sum([tree.predict(X) for tree in self.trees], axis=0)
+        X_bined = np.array(X_bined)
+
+        Fm = np.repeat(self.F0, X_bined.shape[0])
+        pred = Fm + self.learning_rate * np.sum([tree.predict(X_bined) for tree in self.trees], axis=0)
         return pred
