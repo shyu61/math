@@ -26,7 +26,7 @@ class SimpleGOSS:
         selected_grads = grads[selected_indices]
 
         fig, ax = plt.subplots()
-        ax.scatter(np.arange(len(grads)), grads, label="All data points")
+        ax.scatter(np.arange(len(grads)), grads, label="Not selected data points")
         ax.scatter(selected_indices, selected_grads, label="Selected data points", color="red")
         ax.set_xlabel("Data point index")
         ax.set_ylabel("Gradient")
@@ -44,7 +44,7 @@ class SimpleGOSS:
         not_selected_grads_mean = not_selected_grads.mean(axis=1)
 
         fig, ax = plt.subplots()
-        ax.plot(np.arange(self.n_trees), selected_grads_mean, label="Selected data points")
+        ax.plot(np.arange(self.n_trees), selected_grads_mean, label="Selected data points", color="red")
         ax.plot(np.arange(self.n_trees), not_selected_grads_mean, label="Not selected data points")
         ax.set_xlabel("Iteration")
         ax.set_ylabel("Gradient")

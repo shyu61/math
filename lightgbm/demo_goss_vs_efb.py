@@ -71,7 +71,7 @@ def component(algorithm: str):
     # st.write(f"Training time: {results[algorithm]['elapsed_time']:.2f} seconds")
     st.write(f"Training time per iteration: {results[algorithm]['elapsed_time_per_iter']:.3e} seconds")
 
-    st.write(f"Data reduction: {results[algorithm]['data_reduction']}")
+    st.write(f"Training Dataset percentage: {results[algorithm]['data_reduction']}")
 
     fig, ax = plt.subplots()
     ax.plot(results[algorithm]["costs"])
@@ -99,7 +99,8 @@ with col3:
 
 cached_model()
 
-tree_index = st.slider("Select a tree index", 0, 69, 0)
+# tree_index = st.slider("Select a tree index", 0, 69, 0)
+tree_index = st.selectbox("Select a tree index", options=list(range(70)), index=0)
 
 results = cached_model()
 if "model" in results["GOSS"]:

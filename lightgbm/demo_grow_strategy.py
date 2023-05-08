@@ -99,8 +99,8 @@ def app():
     # Streamlitウィジェットの追加
     st.title("Tree Visualization")
     st.sidebar.header("Settings")
-    tree_index = st.sidebar.slider("Select a tree index", 0, 99, 27)
-    # max_depth = st.sidebar.slider("Select max depth", 1, 10, 10)
+    # tree_index = st.sidebar.slider("Select a tree index", 0, 99, 27)
+    tree_index = st.sidebar.selectbox("Select a tree index", options=list(range(100)), index=27)
 
     st.markdown("""
         <style>
@@ -109,6 +109,9 @@ def app():
                 margin-bottom: 50px !important;
                 margin-left: 50px !important;
                 margin-right: 50px !important;
+            }
+            .sidebar .sidebar-content {
+                width: 200px;
             }
         </style>
     """, unsafe_allow_html=True)
