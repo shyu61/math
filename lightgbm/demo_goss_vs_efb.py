@@ -41,7 +41,7 @@ def component(algorithm: str):
         model = SimpleGBDT(n_estimators=n_iter, learning_rate=0.005, max_depth=5, random_state=42, max_bin=20)
     elif algorithm == "GBDT_GOSS":
         n_iter = 50
-        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.05, a=0.3, b=0.1, max_depth=8, random_state=42, max_bin=20)
+        model = SimpleGOSS(n_trees=n_iter, learning_rate=0.05, a=0.25, b=0.1, max_depth=8, random_state=42, max_bin=20)
     elif algorithm == "GBDT_EFB":
         n_iter = 200
         model = SimpleEFB(n_trees=n_iter, learning_rate=0.01, max_depth=7, random_state=42, max_bin=20)
