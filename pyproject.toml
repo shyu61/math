@@ -24,6 +24,7 @@ lightgbm = "^3.3.5"
 pgmpy = "^0.1.22"
 graphviz = "^0.20.1"
 streamlit = "^1.22.0"
+torch-geometric = "^2.3.1"
 
 
 [build-system]

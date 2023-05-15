@@ -2210,6 +2210,49 @@ typing-extensions = "*"
 opt-einsum = ["opt-einsum (>=3.3)"]
 
 [[package]]
+name = "torch-geometric"
+version = "2.3.1"
+description = "Graph Neural Network Library for PyTorch"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "torch_geometric-2.3.1.tar.gz", hash = "sha256:454fd0bbc128a17a4b9d15010ba9f66d48ec8cd7277991b888a7770263fa125d"},
+]
+
+[package.dependencies]
+jinja2 = "*"
+numpy = "*"
+psutil = ">=5.8.0"
+pyparsing = "*"
+requests = "*"
+scikit-learn = "*"
+scipy = "*"
+tqdm = "*"
+
+[package.extras]
+benchmark = ["matplotlib", "networkx", "pandas", "protobuf (<4.21)", "wandb"]
+dev = ["onnx", "onnxruntime", "pre-commit", "pytest", "pytest-cov"]
+full = ["ase", "captum", "graphviz", "h5py", "huggingface_hub", "hydra-core", "matplotlib", "networkx", "numba", "opt_einsum", "pandas", "pgmpy", "protobuf (<4.21)", "pytorch-lightning", "pytorch-memlab", "rdflib", "scikit-image", "statsmodels", "sympy", "tabulate", "torchmetrics", "trimesh", "yacs"]
+graphgym = ["hydra-core", "protobuf (<4.21)", "pytorch-lightning", "yacs"]
+modelhub = ["huggingface_hub"]
+test = ["onnx", "onnxruntime", "pytest", "pytest-cov"]
+
+[[package]]
+name = "torch-scatter"
+version = "2.1.1"
+description = "PyTorch Extension Library of Optimized Scatter Operations"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "torch_scatter-2.1.1.tar.gz", hash = "sha256:59b6fad2c04f58b4ea46bb56e839edfd421faaa849d5e32ab1290975b9ef1656"},
+]
+
+[package.extras]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "tornado"
 version = "6.3.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -2458,4 +2501,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.2"
-content-hash = "34eddcab6e04872c0367a39893f38a223ccd0093067913b1f408333df76388e6"
+content-hash = "18820b2482de38ae71c61544aa08e3803bc54ce307415b372b862bf35a04ff20"
