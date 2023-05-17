@@ -2,84 +2,85 @@ from typing import Tuple
 import pandas as pd
 import numpy as np
 
-def extract_not_missing(train: pd.DataFrame) -> pd.DataFrame:
+### Xgboost内部で使われているsparsity-aware split findingアルゴリズム
+# 欠損値を送る方向をあらかじめ学習しておくことで、分割点の探索空間を絞ることができる。
+# 事前学習方法:
+#  - 欠損値を左右それぞれに寄せて、best_gain, best_splitを探索する
+#  - 左右どちらのbest_gainがより大きかったかで、方向を決定する
+# 事前学習も、欠損値を除外したデータでループを回して探索するので、結果的に、事前学習でも本学習でも欠損値に対する分割点探索を行う必要がなく、計算量を削減できる。
+###
+
+
+### 損失関数: 平滑化指数損失関数
+# L(y, y_pred) = - [y * exp(-y_pred) + (1 - y) * exp(y_pred)]
+
+
+def calc_grad(y_true, y_pred):
+    return -y_true * np.exp(-y_pred) + (1 - y_true) * np.exp(y_pred)
+
+
+def calc_hessian(y_true, y_pred):
+    return y_true * np.exp(-y_pred) + (1 - y_true) * np.exp(y_pred)
+
+
+def calc_gain(
+        grad,
+        hessian,
+        grad_left,
+        grad_right,
+        hessian_left,
+        hessian_right,
+        lam):
+    left = grad_left**2 / (hessian_left + lam)
+    right = grad_right**2 / (hessian_right + lam)
+    return left + right - (grad**2 / (hessian + lam))
+
+
+def main(lam=1.0):
+    train = pd.read_csv('./input/boston.csv')
+
     ik = train.dropna()
-    return ik
+    n_feats = train.shape[1]
+    best_gain = 0
+    grad, hessian = np.sum(calc_grad(train)), np.sum(calc_hessian(train))
 
-def calc_grad():
-    pass
+    for k in train.columns:
+        ik = ik[k]
+        # 欠損値をleftへ移動
+        # 欠損値を除去したデータでループを回していることがポイント
+        # 先に欠損値を含む全体でgradを計算しておくことで、欠損値を探索せずにgainを計算できる
+        ik = ik.sort_values(ascending=True)
+        grad_left, hessian_left = 0, 0
+        for i in ik:
+            # 一つずつ点が増えるごと（ループが回るにつれて）にgainも加算されていく
+            grad_left += np.sum(calc_grad(i))
+            hessian_left += np.sum(calc_hessian(i))
 
-def calc_hess():
-    pass
+            # rightノードのgainは全体から、leftノードのgainを引くことで求める
+            # つまりrightノードは欠損値を含めたgain値になる
+            grad_right = grad - grad_left
+            hessian_right = hessian - hessian_left
+            new_gain = calc_gain(grad, hessian, grad_left, grad_right, hessian_left, hessian_right, lam)
+            if new_gain > best_gain:
+                best_gain = new_gain
+                best_direction = 'left'
 
-def calc_gain():
-    pass
+        # 欠損値をrightへ移動
+        ik = ik.sort_values(ascending=False)
+        for i in ik:
+            grad_right, hessian_right = 0, 0
+            grad_right += np.sum(calc_grad(i))
+            hessian_right += np.sum(calc_hessian(i))
 
-# 各特徴量ごとに実施する
-def determine_default_direction(df: pd.Series, lambda_ = 1.0) -> Tuple(float, str):
-    """
-    df: 欠損のないある1つの特徴量列
-    """
-    best_gain = float('-inf')
-    best_direction = None
+            grad_right = grad - grad_left
+            hessian_right = hessian - hessian_left
+            new_gain = calc_gain(grad, hessian, grad_left, grad_right, hessian_left, hessian_right, lam)
+            if new_gain > best_gain:
+                best_gain = new_gain
+                best_direction = 'right'
+    
+    return best_direction, best_gain
 
-    # goto left
-    df = df.sort_values(ascending=True)
-    for i in df:
-        gain = calc_gain(i) # 計算には、欠損データも含める。じゃないと降順と昇順でgainが全く同じになってしまう
-        if gain > best_gain:
-            best_gain = gain
-            best_direction = 'left'
-
-    # goto right
-    df = df.sort_values(ascending=False)
-    for i in df:
-        gain = calc_gain(i)
-        if gain > best_gain:
-            best_gain = gain
-            best_direction = 'right'
-            break # early_stop
-
-    # 降順でも昇順でも、best_gainは同じ値になるのでは？
-    # だとすると、欠損値をどちらに割り当てるかをこのロジックで判定できないのでは？
-    return best_gain, best_direction
-
-
-def sparsity_aware(ik: pd.DataFrame, lambda_ = 1.0):
-    g, h = 0, 0
-    h_l, h_r = 0, 0
-    n_feats = ik.shape[1]
-    directions = {}
-    for k in range(n_feats):
-        # goto right
-        g_l, h_l = 0, 0
-        score_l = 0
-        k_df = ik.loc[:, k].sort_values(ascending=True)
-        for i in k_df:
-            g_l += calc_grad(i)
-            h_l += calc_hess(i)
-            g_r -= calc_grad(i)
-            h_r -= calc_hess(i)
-            score_l = np.max(score_l, g_l**2 / (h_l + lambda_) + g_r**2 / (h_r + lambda_) - g**2 / (h + lambda_))
-        
-        # goto left
-        g_r, h_r = 0, 0
-        score_r = 0
-        k_df = ik.loc[:, k].sort_values(ascending=False)
-        for i in k_df:
-            g_r += calc_grad(i)
-            h_r += calc_hess(i)
-            g_l -= calc_grad(i)
-            h_l -= calc_hess(i)
-            score_r = np.max(score_r, g_l**2 / (h_l + lambda_) + g_r**2 / (h_r + lambda_) - g**2 / (h + lambda_))
-        
-        if score_l > score_r:
-            directions[k] = 'left'
-        else:
-            directions[k] = 'right'
-    return directions
 
 if __name__ == '__main__':
-    train = pd.read_csv('./input/boston.csv')
-    ik = extract_not_missing(train)
-    sparsity_aware(ik)
+    main()

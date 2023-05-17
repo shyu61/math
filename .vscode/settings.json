@@ -1,0 +1,22 @@
+{
+    // "python.linting.flake8Path": "/usr/local/bin/flake8", // for docker
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--ignore=E501,W503",
+    ],
+    // "python.linting.mypyPath": "/usr/local/bin/mypy", // for docker
+    "python.linting.mypyArgs": [
+        // "--strict"
+    ],
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "none",
+    // "python.formatting.blackPath": "/usr/local/bin/black", // for docker
+    // "isort.path": [
+    //     "/usr/local/bin/isort"
+    // ], // for docker
+    "isort.check": true,
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+}
