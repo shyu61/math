@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["shyu61 <ohs6261@gmail.com>"]
 readme = "README.md"
-packages = [{include = "ml_sandbox"}]
+# packages = [{include = "ml_sandbox"}]
 
 [tool.poetry.dependencies]
 python = "3.11.2"
